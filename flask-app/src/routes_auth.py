@@ -55,3 +55,5 @@ def redirect_to_github() -> Response:
     redirect_to : str = request.host_url.rstrip("/") + "/"
     github_url : str = supabase_auth_service.get_github_signin_url(redirect_to=redirect_to)
     return redirect(github_url)
+
+

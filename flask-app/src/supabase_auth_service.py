@@ -39,3 +39,8 @@ class SupabaseAuthService:
     def logout(self, access_token: str) -> Tuple[Dict[str, Any], int]:
         return self.api_request("POST", "/auth/v1/logout", access_token=access_token)
     
+    # GitHub認証用URL取得
+    def get_github_signin_url(self, redirect_to: str) -> str:
+        return f"{Config.SUPABASE_URL}/auth/v1/authorize?provider=github&redirect_to={redirect_to}&scopes=user:email"
+
+    
