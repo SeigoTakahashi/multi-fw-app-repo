@@ -20,6 +20,8 @@ func main() {
 		AllowCredentials: true,
 	}))
 
+	router.Use(src.SupabaseAuthMiddleware())
+
 	// デフォルト、静的ファイル配信
 	router.GET("/", func(c *gin.Context) {
 		c.File("./static/index.html")
@@ -31,7 +33,6 @@ func main() {
 
 	// 認証APIルーティング登録
 	src.RegisterAuthRoutes(router)
-
 
 	// アプリケーションの実行
 	var port string = src.Config.ServerPort
