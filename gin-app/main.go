@@ -29,6 +29,9 @@ func main() {
 		c.File(path)
 	})
 
+	// 認証APIルーティング登録
+	src.RegisterAuthRoutes(router)
+
 
 	// アプリケーションの実行
 	var port string = src.Config.ServerPort
