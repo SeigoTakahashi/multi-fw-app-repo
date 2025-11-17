@@ -79,3 +79,12 @@ pub async fn get_user_by_access_token(access_token: &str) -> (Value, StatusCode)
 pub async fn logout(access_token: &str) -> (Value, StatusCode) {
     api_request(Method::POST, "/auth/v1/logout", None, Some(access_token)).await
 }
+
+// GitHub サインイン URL取得
+pub fn get_github_signin_url(redirect_to: &str) -> String {
+    format!(
+        "{}/auth/v1/authorize?provider=github&redirect_to={}&scopes=user:email",
+        CONFIG.supabase_url.trim_end_matches('/'),
+        redirect_to
+    )
+}

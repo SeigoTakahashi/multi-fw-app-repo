@@ -18,7 +18,8 @@ pub fn config(cfg: &mut web::ServiceConfig) {
     cfg.service(register)
         .service(login)
         .service(get_user)
-        .service(logout_user);
+        .service(logout_user)
+        .service(github_redirect);
 }
 
 // ベースホストURL取得
@@ -96,3 +97,14 @@ async fn logout_user(req: HttpRequest) -> impl Responder {
     let (_, _) = supabase_auth_service::logout(token).await;
     HttpResponse::Ok().json(serde_json::json!({ "message": "Logout successful." }))
 }
+
+// GitHub認証リダイレクト
+#[get("/api/auth/oauth2/github")]
+async fn github_redirect(req: HttpRequest) -> impl Responder {
+    let redirect_to = base_host_url(&req);
+    let github_url = supabase_auth_service::get_github_signin_url(&redirect_to);
+    HttpResponse::Found()
+        .append_header(("Location", github_url))
+        .finish()
+}
+
