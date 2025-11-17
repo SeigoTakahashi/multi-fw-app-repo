@@ -6,6 +6,9 @@ use env_logger::Env;
 mod config;
 use config::CONFIG;
 
+mod supabase_auth_service;
+mod routes_auth;
+
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     
@@ -21,6 +24,7 @@ async fn main() -> std::io::Result<()> {
         App::new()
             .wrap(Logger::default())
             .wrap(cors)
+            .configure(routes_auth::config)
             .service(Files::new("/", "./static").index_file("index.html"))
     })
     .bind(("0.0.0.0", CONFIG.server_port))?
