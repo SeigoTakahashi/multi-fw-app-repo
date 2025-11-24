@@ -75,7 +75,7 @@ export default function MemosPage() {
         </Button>
       </div>
 
-      <Message messageText={successMessage} setMessage={setSuccessMessage} messageType='success' />
+      <Message messageText={error} setMessage={setError} messageType='error' />
 
       <Card className="mb-6 shadow-md" variant="outlined">
         <CardContent>
