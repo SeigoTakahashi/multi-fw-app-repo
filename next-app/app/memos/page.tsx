@@ -19,6 +19,8 @@ import SaveIcon from '@mui/icons-material/Save';
 import CancelIcon from '@mui/icons-material/Cancel';
 import Message from '../components/Message';
 
+import apiAuthFetch from '@/app/lib/apiFetch';
+
 type Memo = {
   id: number;
   user_id: string;
@@ -45,6 +47,8 @@ export default function MemosPage() {
     })();
   }, []);
 
+  const router = useRouter();
+
   async function createMemo() {
   }
 
@@ -61,7 +65,12 @@ export default function MemosPage() {
   }
 
   async function logout() {
-    window.location.href = '/';  
+    setError('');
+    await apiAuthFetch(`/api/auth/logout`, {
+      method: 'POST',
+    });
+    localStorage.removeItem('user_session');
+    router.push('/');
   }
 
   return (
