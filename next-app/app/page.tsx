@@ -7,12 +7,9 @@ import {
   Card,
   CardContent,
   Typography,
-  Snackbar,
-  Alert,
 } from '@mui/material';
 import GitHubIcon from '@mui/icons-material/GitHub';
 import Message from './components/Message';
-
 import { useRouter } from 'next/navigation';
 import apiFetch from '@/app/lib/apiFetch';
 
@@ -21,7 +18,6 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
   const [error, setError] = useState(() => {
-    // 初期エラーをURLフラグメントから取得
     if (typeof window !== 'undefined') {
       const hash = window.location.hash;
       if (hash) {
@@ -94,85 +90,107 @@ export default function LoginPage() {
   };
 
   const loginGithub = () => {
-    window.location.href = '/memos';
+    window.location.href = '/api/auth/oauth2/github';
   };
 
   return (
-    <div className="w-full flex items-center justify-center mt-24 px-4">
-      <Card className="w-full max-w-md shadow-xl" variant="outlined">
-        <CardContent>
-          <Typography
-            variant="h5"
-            sx={{ mb: 2 }}
-            className="text-center font-bold"
-          >
-            ログイン／新規登録
-          </Typography>
+    <div className="min-h-screen bg-gray-100 flex items-center justify-center px-4 py-16">
+      <div className="w-full max-w-md">
+        <Card className="shadow-2xl rounded-xl overflow-hidden">
+          <CardContent className="p-6">
+            <Typography
+              variant="h5"
+              className="text-center font-bold text-gray-900 mb-6"
+            >
+              ログイン／新規登録
+            </Typography>
 
-          <TextField
-            label="メールアドレス"
-            fullWidth
-            type="email"
-            sx={{ mb: 1 }}
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-          />
+            <TextField
+              label="メールアドレス"
+              fullWidth
+              type="email"
+              sx={{
+                mb: 3,
+                '& .MuiOutlinedInput-root': {
+                  borderRadius: '10px',
+                  backgroundColor: '#f9fafb',
+                },
+              }}
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
 
-          <TextField
-            label="パスワード"
-            fullWidth
-            type="password"
-            sx={{ mb: 1 }}
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
+            <TextField
+              label="パスワード"
+              fullWidth
+              type="password"
+              sx={{
+                mb: 4,
+                '& .MuiOutlinedInput-root': {
+                  borderRadius: '10px',
+                  backgroundColor: '#f9fafb',
+                },
+              }}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
 
-          <Button
-            variant="contained"
-            className="w-full py-2"
-            sx={{
-              mb: 1,
-              bgcolor: 'gray',
-              color: 'white',
-              '&:hover': { opacity: 0.8 },
-            }}
-            onClick={login}
-          >
-            ログイン
-          </Button>
+            <Button
+              variant="contained"
+              fullWidth
+              sx={{
+                mb: 2,
+                py: 1.5,
+                bgcolor: 'primary.main',
+                color: 'white',
+                borderRadius: '10px',
+                '&:hover': { bgcolor: 'primary.dark' },
+              }}
+              onClick={login}
+            >
+              ログイン
+            </Button>
 
-          <Button
-            variant="contained"
-            className="w-full py-2"
-            sx={{
-              mb: 1,
-              bgcolor: 'gray',
-              color: 'white',
-              '&:hover': { opacity: 0.8 },
-            }}
-            onClick={register}
-          >
-            新規登録
-          </Button>
+            <Button
+              variant="contained"
+              fullWidth
+              sx={{
+                mb: 2,
+                py: 1.5,
+                bgcolor: 'secondary.main',
+                color: 'white',
+                borderRadius: '10px',
+                '&:hover': { bgcolor: 'secondary.dark' },
+              }}
+              onClick={register}
+            >
+              新規登録
+            </Button>
 
-          <Button
-            variant="contained"
-            className="w-full py-2 flex items-center gap-2"
-            sx={{
-              bgcolor: 'black',
-              color: 'white',
-              '&:hover': { opacity: 0.8 },
-            }}
-            onClick={loginGithub}
-          >
-            <GitHubIcon />
-            GitHub ログイン
-          </Button>
-        </CardContent>
-      </Card>
+            <Button
+              variant="contained"
+              fullWidth
+              startIcon={<GitHubIcon />}
+              sx={{
+                py: 1.5,
+                bgcolor: 'black',
+                color: 'white',
+                borderRadius: '10px',
+                '&:hover': { opacity: 0.85 },
+              }}
+              onClick={loginGithub}
+            >
+              GitHub ログイン
+            </Button>
+          </CardContent>
+        </Card>
 
-      <Message messageText={error} setMessage={setError} messageType='error' />
-      <Message messageText={successMessage} setMessage={setSuccessMessage} messageType='success' />
+        {/* メッセージ */}
+        <div className="mt-4 space-y-2">
+          <Message messageText={error} setMessage={setError} messageType="error" />
+          <Message messageText={successMessage} setMessage={setSuccessMessage} messageType="success" />
+        </div>
+      </div>
     </div>
   );
 }

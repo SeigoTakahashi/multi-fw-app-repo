@@ -10,16 +10,14 @@ import {
   Typography,
   IconButton,
   Divider,
-  Snackbar,
-  Alert,  
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import SaveIcon from '@mui/icons-material/Save';
 import CancelIcon from '@mui/icons-material/Cancel';
 import Message from '../components/Message';
+import { apiAuthFetch, errorHandling } from '../lib/apiFetch';
 
-import apiAuthFetch from '@/app/lib/apiFetch';
 
 type Memo = {
   id: number;
@@ -38,8 +36,12 @@ export default function MemosPage() {
   const [editTitle, setEditTitle] = useState('');
   const [editContent, setEditContent] = useState('');
 
-  async function loadMemos() {
-  }
+  const loadMemos = async () => {
+    await errorHandling(async () => {
+      const json = await apiAuthFetch('/api/memos');
+      setMemos(json);
+    }, setError);
+  };
 
   useEffect(() => {
     (async () => {
@@ -50,20 +52,46 @@ export default function MemosPage() {
   const router = useRouter();
 
   async function createMemo() {
+    await errorHandling(async () => {
+      await apiAuthFetch('/api/memos', {
+        method: 'POST',
+        body: JSON.stringify({ title, content }),
+      });
+      await loadMemos();
+    }, setError);
   }
 
   async function deleteMemo(id: number) {
+    await errorHandling(async () => {
+      await apiAuthFetch(`/api/memos/${id}`, {
+        method: 'DELETE',
+      });
+      await loadMemos();
+    }, setError);
   }
 
   function startEdit(memo: Memo) {
+    setEditingId(memo.id);
+    setEditTitle(memo.title);
+    setEditContent(memo.content || '');
   }
 
   function cancelEdit() {
+    setEditingId(null);
+    setEditTitle('');
+    setEditContent('');
   }
 
   async function updateMemo(id: number) {
+    await errorHandling(async () => {
+      await apiAuthFetch(`/api/memos/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify({ editTitle, editContent  }),
+      });
+      cancelEdit()
+      await loadMemos();
+    }, setError);
   }
-
   async function logout() {
     setError('');
     await apiAuthFetch(`/api/auth/logout`, {
@@ -74,120 +102,150 @@ export default function MemosPage() {
   }
 
   return (
-    <div className="max-w-2xl w-full px-4 py-10">
-      <div className="flex justify-between items-center mb-4">
-        <Typography variant="h4" className="font-bold">
-          メモ一覧
-        </Typography>
-        <Button variant="outlined" color="inherit" onClick={logout}>
-          ログアウト
-        </Button>
-      </div>
-
-      <Message messageText={error} setMessage={setError} messageType='error' />
-
-      <Card className="mb-6 shadow-md" variant="outlined">
-        <CardContent>
-          <Typography variant="h6" className="font-semibold">
-            メモ追加
+    <div className="min-h-screen bg-gray-100 py-10 px-4">
+      <div className="max-w-3xl mx-auto">
+        {/* ヘッダー */}
+        <div className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-3">
+          <Typography variant="h4" className="font-bold text-gray-900">
+            メモ一覧
           </Typography>
+          <div className="flex items-center gap-3">
+            <Typography className="text-gray-600 text-sm">
+              {JSON.parse(localStorage.getItem('user_session') || '{}')?.user?.email || '未ログイン'}
+            </Typography>
+            <Button variant="outlined" color="secondary" onClick={logout}>
+              ログアウト
+            </Button>
+          </div>
+        </div>
 
-          <TextField
-            label="タイトル"
-            fullWidth
-            sx={{ mb: 1 }}
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-          />
+        {/* エラーメッセージ */}
+        <Message messageText={error} setMessage={setError} messageType="error" />
 
-          <TextField
-            label="内容"
-            fullWidth
-            multiline
-            minRows={3}
-            sx={{ mb: 1 }}
-            value={content}
-            onChange={(e) => setContent(e.target.value)}
-          />
+        {/* メモ作成 */}
+        <Card className="mb-6 shadow-lg rounded-xl" sx={{ backgroundColor: '#ffffff' }}>
+          <CardContent>
+            <Typography variant="h6" className="font-semibold mb-4 text-gray-800">
+              メモ追加
+            </Typography>
+            <TextField
+              label="タイトル"
+              fullWidth
+              sx={{
+                mb: 2,
+                '& .MuiOutlinedInput-root': {
+                  borderRadius: '10px',
+                  backgroundColor: '#f9fafb',
+                },
+              }}
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              variant="outlined"
+            />
+            <TextField
+              label="内容"
+              fullWidth
+              multiline
+              minRows={3}
+              sx={{
+                mb: 3,
+                '& .MuiOutlinedInput-root': {
+                  borderRadius: '10px',
+                  backgroundColor: '#f9fafb',
+                },
+              }}
+              value={content}
+              onChange={(e) => setContent(e.target.value)}
+              variant="outlined"
+            />
+            <Button
+              variant="contained"
+              color="primary"
+              className="w-full py-2"
+              onClick={createMemo}
+            >
+              追加
+            </Button>
+          </CardContent>
+        </Card>
 
-          <Button variant="contained" className="w-full" onClick={createMemo}>
-            追加
-          </Button>
-        </CardContent>
-      </Card>
+        <Divider className="mb-6" />
 
-      <Divider className="mb-4" />
-
-      <div className="space-y-4">
-        {memos.map((memo) => (
-          <Card key={memo.id} className="shadow-sm">
-            <CardContent>
-              {editingId === memo.id ? (
-                <>
-                  <TextField
-                    label="タイトル"
-                    fullWidth
-                    sx={{ mb: 2 }}
-                    value={editTitle}
-                    onChange={(e) => setEditTitle(e.target.value)}
-                  />
-                  <TextField
-                    label="内容"
-                    fullWidth
-                    multiline
-                    minRows={3}
-                    sx={{ mb: 2 }}
-                    value={editContent}
-                    onChange={(e) => setEditContent(e.target.value)}
-                  />
-                  <div className="flex gap-2 justify-end">
-                    <IconButton
-                      color="primary"
-                      onClick={() => updateMemo(memo.id)}
-                    >
-                      <SaveIcon />
-                    </IconButton>
-                    <IconButton color="default" onClick={cancelEdit}>
-                      <CancelIcon />
-                    </IconButton>
-                  </div>
-                </>
-              ) : (
-                <>
-                  <div className="flex justify-between items-start mb-2">
-                    <Typography className="text-xs text-gray-500">
-                      {new Date(memo.createdAt).toLocaleString()}
-                    </Typography>
-                    <div>
-                      <IconButton
-                        color="info"
-                        size="small"
-                        onClick={() => startEdit(memo)}
-                      >
-                        <EditIcon />
+        {/* メモ一覧 */}
+        <div className="space-y-4">
+          {memos.map((memo) => (
+            <Card
+              key={memo.id}
+              className="shadow-md rounded-xl hover:shadow-2xl transition-shadow duration-200"
+              sx={{ backgroundColor: '#ffffff' }}
+            >
+              <CardContent>
+                {editingId === memo.id ? (
+                  <>
+                    <TextField
+                      label="タイトル"
+                      fullWidth
+                      sx={{
+                        mb: 2,
+                        '& .MuiOutlinedInput-root': {
+                          borderRadius: '10px',
+                          backgroundColor: '#f9fafb',
+                        },
+                      }}
+                      value={editTitle}
+                      onChange={(e) => setEditTitle(e.target.value)}
+                    />
+                    <TextField
+                      label="内容"
+                      fullWidth
+                      multiline
+                      minRows={3}
+                      sx={{
+                        mb: 3,
+                        '& .MuiOutlinedInput-root': {
+                          borderRadius: '10px',
+                          backgroundColor: '#f9fafb',
+                        },
+                      }}
+                      value={editContent}
+                      onChange={(e) => setEditContent(e.target.value)}
+                    />
+                    <div className="flex gap-2 justify-end">
+                      <IconButton color="primary" onClick={() => updateMemo(memo.id)}>
+                        <SaveIcon />
                       </IconButton>
-                      <IconButton
-                        color="inherit"
-                        size="small"
-                        onClick={() => deleteMemo(memo.id)}
-                      >
-                        <DeleteIcon />
+                      <IconButton color="default" onClick={cancelEdit}>
+                        <CancelIcon />
                       </IconButton>
                     </div>
-                  </div>
-
-                  <Typography variant="h6" className="mb-2">
-                    {memo.title}
-                  </Typography>
-
-                  <Typography className="text-gray-700 whitespace-pre-line">
-                    {memo.content}
-                  </Typography>
-                </>
-              )}
-            </CardContent>
-          </Card>
-        ))}
+                  </>
+                ) : (
+                  <>
+                    <div className="flex justify-between items-start mb-2">
+                      <Typography className="text-xs text-gray-500">
+                        {new Date(memo.createdAt).toLocaleString()}
+                      </Typography>
+                      <div>
+                        <IconButton color="info" size="small" onClick={() => startEdit(memo)}>
+                          <EditIcon />
+                        </IconButton>
+                        <IconButton color="error" size="small" onClick={() => deleteMemo(memo.id)}>
+                          <DeleteIcon />
+                        </IconButton>
+                      </div>
+                    </div>
+                    <Typography variant="h6" className="mb-2 font-medium text-blue-700">
+                      {memo.title}
+                    </Typography>
+                    <Typography className="text-gray-700 whitespace-pre-line">
+                      {memo.content}
+                    </Typography>
+                  </>
+                )}
+              </CardContent>
+            </Card>
+          ))}
+        </div>
       </div>
     </div>
   );

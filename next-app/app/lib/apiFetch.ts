@@ -28,4 +28,26 @@ export default async function apiFetch(
   return response.json();
 }
 
+// 共通認証後APIリクエスト処理
+export async function apiAuthFetch(url: string, options: RequestInit = {}) {
+  const sessionData = JSON.parse(localStorage.getItem('user_session') || '{}');
+  console.log('sessionData:', sessionData);
+  const accessToken = sessionData?.access_token || '';
+  return apiFetch(url, options, accessToken);
+}
+
+// 共通エラーハンドリング処理
+export async function errorHandling(
+  func: () => Promise<void>,
+  setError: (msg: string) => void
+) {
+  setError('');
+  try {
+    await func();
+  } catch (e: unknown) {
+    setError(e instanceof Error ? e.message : 'エラーが発生しました');
+    console.error(e);
+  }
+}
+
 
