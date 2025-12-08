@@ -36,6 +36,8 @@ export default function MemosPage() {
   const [editTitle, setEditTitle] = useState('');
   const [editContent, setEditContent] = useState('');
 
+  const [userEmail, setUserEmail] = useState<string>('未ログイン');
+
   const loadMemos = async () => {
     await errorHandling(async () => {
       const json = await apiAuthFetch('/api/memos');
@@ -47,6 +49,13 @@ export default function MemosPage() {
     (async () => {
       await loadMemos();
     })();
+  }, []);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const session = JSON.parse(localStorage.getItem('user_session') || '{}');
+      setUserEmail(session?.user?.email || '未ログイン');
+    }
   }, []);
 
   const router = useRouter();
@@ -86,7 +95,7 @@ export default function MemosPage() {
     await errorHandling(async () => {
       await apiAuthFetch(`/api/memos/${id}`, {
         method: 'PUT',
-        body: JSON.stringify({ editTitle, editContent  }),
+        body: JSON.stringify({ title: editTitle, content: editContent  }),
       });
       cancelEdit()
       await loadMemos();
@@ -111,7 +120,7 @@ export default function MemosPage() {
           </Typography>
           <div className="flex items-center gap-3">
             <Typography className="text-gray-600 text-sm">
-              {JSON.parse(localStorage.getItem('user_session') || '{}')?.user?.email || '未ログイン'}
+              {userEmail}
             </Typography>
             <Button variant="outlined" color="secondary" onClick={logout}>
               ログアウト
