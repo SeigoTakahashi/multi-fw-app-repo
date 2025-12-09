@@ -15,6 +15,7 @@ type AppConfig struct {
 	TiDBPort        string
 	TiDBDBName      string
 	TiDBURI         string
+	FrontendURL     string
 }
 
 // グローバル変数で定義
@@ -35,6 +36,7 @@ func newConfig() *AppConfig {
 		TiDBHost:        getEnv("TIDB_HOST", ""),
 		TiDBPort:        getEnv("TIDB_PORT", ""),
 		TiDBDBName:      getEnv("TIDB_DB_NAME", ""),
+		FrontendURL:     getEnv("FRONTEND_URL", ""),
 	}
 	config.TiDBURI = fmt.Sprintf(
 		"%s:%s@tcp(%s:%s)/%s?tls=true&parseTime=true",
