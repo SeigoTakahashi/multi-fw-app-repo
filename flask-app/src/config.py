@@ -15,3 +15,6 @@ class Config:
     TIDB_PORT = os.environ.get("TIDB_PORT", "")
     TIDB_DB_NAME = os.environ.get("TIDB_DB_NAME", "")
     TIDB_URI = f"mysql+pymysql://{TIDB_USER}:{TIDB_PASSWORD}@{TIDB_HOST}:{TIDB_PORT}/{TIDB_DB_NAME}"
+
+    # フロントエンドURL
+    FRONTEND_URL = os.environ.get("FRONTEND_URL", "")
