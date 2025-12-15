@@ -7,6 +7,8 @@ use serde::Deserialize;
 use log::info;
 use crate::supabase_auth_service;
 
+use crate::config::CONFIG;
+
 #[derive(Deserialize)]
 pub struct AuthForm {
     pub email: String,
@@ -44,10 +46,20 @@ fn base_host_url(req: &HttpRequest) -> String {
     format!("{}://{}/", scheme, host)
 }
 
+// リダイレクトURL取得
+fn redirect_url(req: &HttpRequest) -> String {
+    info!("frontend_url={}", CONFIG.frontend_url);
+    if CONFIG.frontend_url.is_empty() {
+        base_host_url(&req)
+    } else {
+        format!("{}/", CONFIG.frontend_url)
+    }
+}
+
 // アカウント登録
 #[post("/api/auth/register")]
 async fn register(req: HttpRequest, form: Json<AuthForm>) -> impl Responder {
-    let redirect_to = base_host_url(&req);
+    let redirect_to = redirect_url(&req);
 
     let (result, _) = supabase_auth_service::signup(&form.email, &form.password, &redirect_to).await;
 
@@ -101,7 +113,7 @@ async fn logout_user(req: HttpRequest) -> impl Responder {
 // GitHub認証リダイレクト
 #[get("/api/auth/oauth2/github")]
 async fn github_redirect(req: HttpRequest) -> impl Responder {
-    let redirect_to = base_host_url(&req);
+    let redirect_to = redirect_url(&req);
     let github_url = supabase_auth_service::get_github_signin_url(&redirect_to);
     HttpResponse::Found()
         .append_header(("Location", github_url))

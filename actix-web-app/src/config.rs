@@ -17,6 +17,9 @@ pub struct Config {
     // pub tidb_port: String,
     // pub tidb_db_name: String,
     pub tidb_uri: String,
+
+    // フロントエンド設定
+    pub frontend_url: String,
 }
 
 impl Config {
@@ -37,6 +40,8 @@ impl Config {
             tidb_user, tidb_password, tidb_host, tidb_port, tidb_db_name
         );
 
+        let frontend_url = env::var("FRONTEND_URL").unwrap_or_default();
+
         Config {
             server_port,
             supabase_url,
@@ -47,6 +52,7 @@ impl Config {
             // tidb_port,
             // tidb_db_name,
             tidb_uri,
+            frontend_url,
         }
     }
 }
