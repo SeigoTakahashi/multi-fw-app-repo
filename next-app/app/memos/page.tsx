@@ -10,11 +10,15 @@ import {
   Typography,
   IconButton,
   Divider,
+  Box,
+  Paper,
+  Fade
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import SaveIcon from '@mui/icons-material/Save';
 import CancelIcon from '@mui/icons-material/Cancel';
+import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import Message from '../components/Message';
 import { apiAuthFetch, errorHandling } from '../lib/apiFetch';
 
@@ -37,6 +41,8 @@ export default function MemosPage() {
   const [editContent, setEditContent] = useState('');
 
   const [userEmail, setUserEmail] = useState<string>('未ログイン');
+
+  const [summary, setSummary] = useState('');
 
   const loadMemos = async () => {
     await errorHandling(async () => {
@@ -62,10 +68,15 @@ export default function MemosPage() {
 
   async function createMemo() {
     await errorHandling(async () => {
-      await apiAuthFetch('/api/memos', {
+      const savedMemo = await apiAuthFetch('/api/memos', {
         method: 'POST',
         body: JSON.stringify({ title, content }),
       });
+
+      // 要約があれば値をセットする
+      if (savedMemo.summary) {
+        setSummary(savedMemo.summary);
+      }
       await loadMemos();
     }, setError);
   }
@@ -179,6 +190,33 @@ export default function MemosPage() {
         </Card>
 
         <Divider className="mb-6" />
+
+        {/* summaryが存在する場合のみ表示 */}
+        {summary && (
+          <Fade in={Boolean(summary)}>
+            <Paper
+              elevation={0}
+              sx={{
+                mt: 2,
+                mb: 2,
+                p: 2,
+                backgroundColor: '#f8f9fa', // ほんのりグレーで別枠感を出す
+                borderLeft: '4px solid #3f51b5', // アクセントカラーの左線
+                borderRadius: '4px',
+              }}
+            >
+              <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                <AutoAwesomeIcon sx={{ fontSize: 20, color: '#3f51b5', mr: 1 }} />
+                <Typography variant="subtitle2" color="primary" sx={{ fontWeight: 'bold' }}>
+                  AIによる要約
+                </Typography>
+              </Box>
+              <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.6 }}>
+                {summary}
+              </Typography>
+            </Paper>
+          </Fade>
+        )}
 
         {/* メモ一覧 */}
         <div className="space-y-4">

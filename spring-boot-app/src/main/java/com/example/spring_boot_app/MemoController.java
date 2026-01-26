@@ -17,6 +17,9 @@ public class MemoController {
     @Autowired
     private MemoRepository memoRepository;
 
+    @Autowired
+    private DifyService difyService;
+
     /**
      * ログインユーザーのメモを全件取得します
      * @param authentication ログイン情報
@@ -41,7 +44,15 @@ public class MemoController {
         newMemo.setUserId(userId);
         newMemo.setTitle(memoDto.getTitle());
         newMemo.setContent(memoDto.getContent());
+
+        // まずはDBに保存（summaryは無視される）
         Memo savedMemo = memoRepository.save(newMemo);
+
+        // Difyで要約を取得し、一時的なフィールドにセット
+        String aiSummary = difyService.getSummary(memoDto.getTitle());
+        savedMemo.setSummary(aiSummary);
+
+        // 要約が入った状態でレスポンスを返す
         return new ResponseEntity<>(savedMemo, HttpStatus.CREATED);
     }
 

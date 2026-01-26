@@ -23,4 +23,8 @@ public class Memo {
     @CreationTimestamp
     @Column(nullable = false, updatable = false)
     private Instant createdAt = Instant.now();
+
+    // DBには保存しないが、オブジェクトとして保持する
+    @Transient 
+    private String summary;
 }
