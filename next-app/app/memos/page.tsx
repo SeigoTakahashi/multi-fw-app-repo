@@ -11,6 +11,7 @@ import {
   IconButton,
   Divider,
   Box,
+  CircularProgress,
   Paper,
   Fade
 } from '@mui/material';
@@ -19,6 +20,9 @@ import EditIcon from '@mui/icons-material/Edit';
 import SaveIcon from '@mui/icons-material/Save';
 import CancelIcon from '@mui/icons-material/Cancel';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
+import SendIcon from '@mui/icons-material/Send';
+import Markdown from 'react-markdown'
+import remarkGfm from 'remark-gfm';
 import Message from '../components/Message';
 import { apiAuthFetch, errorHandling } from '../lib/apiFetch';
 
@@ -43,6 +47,10 @@ export default function MemosPage() {
   const [userEmail, setUserEmail] = useState<string>('未ログイン');
 
   const [summary, setSummary] = useState('');
+
+  const [errorCode, setErrorCode] = useState('');
+  const [suggestion, setSuggestion] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const loadMemos = async () => {
     await errorHandling(async () => {
@@ -119,6 +127,22 @@ export default function MemosPage() {
     });
     localStorage.removeItem('user_session');
     router.push('/');
+  }
+
+  async function errorSuggest() {
+    setLoading(true);
+    await errorHandling(async () => {
+      const errorHandling = await apiAuthFetch('/api/errors', {
+        method: 'POST',
+        body: JSON.stringify({ errorCode }),
+      });
+
+      // 提案があれば値をセットする
+      if (errorHandling.suggestion) {
+        setSuggestion(errorHandling.suggestion);
+      }
+    }, setError);
+    setLoading(false);
   }
 
   return (
@@ -293,6 +317,59 @@ export default function MemosPage() {
             </Card>
           ))}
         </div>
+
+
+        <Box sx={{ maxWidth: 800, mx: 'auto', p: 3 }}>
+          <Typography variant="h5" gutterBottom fontWeight="bold">
+            AI エラー解決サポーター
+          </Typography>
+          
+          <Paper sx={{ p: 3, mb: 4 }}>
+            <Box sx={{ display: 'flex', gap: 2, flexDirection: 'column' }}>
+              <TextField
+                fullWidth
+                label="エラーコードまたはログを入力"
+                variant="outlined"
+                value={errorCode}
+                onChange={(e) => setErrorCode(e.target.value)}
+                placeholder="例: NullPointerException at line 42..."
+                multiline
+                // rows を指定することで、最初から大きな入力エリアになります
+                rows={8} 
+                // maxRows を外すか大きくすることで、入力に応じてさらに伸びるようになります
+                maxRows={15} 
+              />
+              <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+                <Button
+                  variant="contained"
+                  onClick={errorSuggest}
+                  disabled={loading || !errorCode}
+                  // ボタンを少し大きく、存在感を出す
+                  sx={{ minWidth: 160, py: 1.5, fontWeight: 'bold' }}
+                  startIcon={loading ? <CircularProgress size={20} color="inherit" /> : <SendIcon />}
+                >
+                  AIに解決策を聞く
+                </Button>
+              </Box>
+            </Box>
+          </Paper>
+
+          {suggestion && (
+            <Paper sx={{ p: 4, bgcolor: '#f8f9fa' }} elevation={0} variant="outlined">
+              <Typography variant="subtitle1" color="primary" fontWeight="bold" gutterBottom>
+                AIからの提案
+              </Typography>
+              <Divider sx={{ mb: 2 }} />
+              
+              {/* マークダウン表示部分 */}
+              <Box className="markdown-body">
+                <Markdown remarkPlugins={[remarkGfm]}>
+                  {suggestion}
+                </Markdown>
+              </Box>
+            </Paper>
+          )}
+        </Box>
       </div>
     </div>
   );
